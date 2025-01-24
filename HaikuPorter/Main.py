@@ -90,6 +90,7 @@ class Main(object):
 			or self.options.searchPackages
 			or self.options.about
 			or self.options.location
+			or self.options.recipe
 			or self.options.buildMaster
 			or self.options.repositoryUpdate
 			or self.options.prunePackageRepository
@@ -241,6 +242,32 @@ class Main(object):
 						ports.add(port.versionedName)
 
 			print('\n'.join(sorted(ports)))
+			return
+
+		if self.options.recipe:
+			if not args:
+				sysExit('You need to specify a port name.\n'
+						u"Invoke '" + sys.argv[0] + u" -h' for usage "
+						u"information.")
+			# Provide the recipe file of a port (for quick editing)
+			self._createRepositoryIfNeeded(True)
+			allPorts = self.repository.allPorts
+			portSpecs = [
+				self._splitPortSpecIntoNameVersionAndRevision(port)
+					for port in args
+			]
+			for portSpec in portSpecs:
+				if portSpec['version']:
+					portID = portSpec['name'] + '-' + portSpec['version']
+				else:
+					version = self.repository.getActiveVersionOf(portSpec['name'], True)
+					if not version:
+						sysExit('No version of ' + portSpec['name'] + ' can be built')
+					portID = portSpec['name'] + '-' + version
+				if portID not in allPorts:
+					sysExit(portID + ' not found in tree.')
+
+				print(allPorts[portID].recipeFilePath)
 			return
 
 		if self.options.location:

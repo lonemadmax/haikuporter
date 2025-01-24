@@ -108,6 +108,9 @@ def parseOptions():
 					  action='store_true', dest='location', default=False,
 					  help="print out the location of a recipe (via search, "
 						   "for scripted editing)")
+	basic_flags.add_option('--recipe',
+					  action='store_true', dest='recipe', default=False,
+					  help="print out the recipe path")
 
 	basic_flags.add_option('-q', '--quiet',
 					  action='store_true', dest='quiet', default=False,
