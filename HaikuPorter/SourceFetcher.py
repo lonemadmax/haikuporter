@@ -384,6 +384,49 @@ class SourceFetcherForLocalFile(object):
 	def calcChecksum(self):
 		return calcChecksumFile(self.fetchTarget)
 
+# -- Fakes fetching sources, mounts local device on unpack --------------------
+
+class SourceFetcherForLocalMount(object):
+	def __init__(self, uri, fetchTarget):
+		print('init', uri, fetchTarget)
+		self.fetchTarget = fetchTarget
+		self.uri = uri
+		self.sourceShouldBeValidated = False
+
+	def fetch(self):
+		with open(self.fetchTarget, "wt") as f:
+			f.write(self.uri)
+
+	def updateToRev(self, rev):
+		pass
+
+	def unpack(self, sourceBaseDir, sourceSubDir, foldSubDir):
+		device = None
+		if self.uri.startswith('volume:'):
+			volume = self.uri[8:]
+			# Get the device
+			output = check_output(['mountvolume'], text=True)
+			for line in output.split('\n')[2:]:
+				# TODO: only works if volume and device don't have spaces
+				# No solution for the volume part
+				line = line.split()
+				if line and line[0] == volume:
+					device = '/dev/disk/' + line[-1][1:]
+					device = device[:-1]
+					break
+			# Unmount it
+			check_output(['mountvolume', '-u', volume])
+		else:
+			device = self.uri[7:]
+
+		if device is None:
+			sysExit('Could not find %s.' % self.uri)
+
+		check_output(['mount', device, sourceBaseDir])
+
+	def calcChecksum(self):
+		return calcChecksumFile(self.fetchTarget)
+
 # -- Fetches sources via hg ---------------------------------------------------
 
 class SourceFetcherForMercurial(object):
@@ -521,6 +564,8 @@ def createSourceFetcher(uri, fetchTarget):
 		return SourceFetcherForSubversion(uri, fetchTarget)
 	elif lowerUri.startswith('file://'):
 		return SourceFetcherForLocalFile(uri[7:], fetchTarget)
+	elif lowerUri.startswith('volume:') or lowerUri.startwith('device:'):
+		return SourceFetcherForLocalMount(uri, fetchTarget)
 	elif ':' not in lowerUri:
 		return SourceFetcherForLocalFile(uri, fetchTarget)
 	else:
