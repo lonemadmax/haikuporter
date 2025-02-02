@@ -369,8 +369,12 @@ class SourceFetcherForLocalFile(object):
 	def fetch(self):
 		# just symlink the local file to fetchTarget (if it exists)
 		portBaseDir = os.path.dirname(os.path.dirname(self.fetchTarget))
-		localFile = portBaseDir + '/' + self.uri
-		if not os.path.isfile(localFile):
+		localFile = self.uri
+		if localFile.endswith('#noarchive'):
+			localFile = localFile[:-10]
+		if not localFile.startswith('/'):
+			localFile = os.path.join(portBaseDir, localFile)
+		if not (os.path.isfile(localFile) or os.path.isdir(localFile)):
 			raise NameError("source %s doesn't exist" % localFile)
 		os.symlink(localFile, self.fetchTarget)
 

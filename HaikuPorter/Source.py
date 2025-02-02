@@ -183,7 +183,7 @@ class Source(object):
 	def clean(self):
 		if os.path.exists(self.fetchTarget):
 			print('Removing source %s ...' % self.fetchTarget)
-			if os.path.isdir(self.fetchTarget):
+			if os.path.isdir(self.fetchTarget) and not os.path.islink(self.fetchTarget):
 				shutil.rmtree(self.fetchTarget)
 			else:
 				os.remove(self.fetchTarget)
