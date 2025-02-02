@@ -379,6 +379,9 @@ class Main(object):
 					for port in args
 			]
 
+		if not self.options.unpack:
+			self.options.patch = False
+
 		# don't build or package when not patching
 		if not self.options.patch:
 			self.options.build = False
@@ -708,10 +711,11 @@ class Main(object):
 
 		if not port.isMetaPort:
 			port.downloadSource()
-			port.unpackSource()
-			port.populateAdditionalFiles()
-			if self.options.patch:
-				port.patchSource()
+			if self.options.unpack:
+				port.unpackSource()
+				port.populateAdditionalFiles()
+				if self.options.patch:
+					port.patchSource()
 
 		if self.options.build:
 			port.build(self.packagesPath, self.options.package, targetPath)

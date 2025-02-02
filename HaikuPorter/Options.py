@@ -132,6 +132,9 @@ def parseOptions():
 					  action='store_true', dest='debug', default=False,
 					  help="show Python stack traces for fatal errors")
 
+	basic_flags.add_option('--no-unpack',
+					  action='store_false', dest='unpack', default=True,
+					  help="don't unpack the sources, just download")
 	basic_flags.add_option('-n', '--nopatch',
 					  action='store_false', dest='patch', default=True,
 					  help="don't patch the sources, just download and unpack")
