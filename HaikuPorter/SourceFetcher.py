@@ -81,6 +81,12 @@ def unpackFile(uri, fetchTarget, sourceBaseDir, sourceSubDir, foldSubDir):
 			if not os.path.isdir(sourceDir):
 				os.makedirs(sourceDir)
 			shutil.copy(fetchTarget, sourceDir)
+	elif uri.endswith('#justmove'):
+		localFile = uri[:-len('#justmove')]
+		if not localFile.startswith('/'):
+			portBaseDir = os.path.dirname(os.path.dirname(fetchTarget))
+			localFile = os.path.join(portBaseDir, localFile)
+		os.rename(localFile, sourceDir)
 	else:
 		actualSubDir = sourceSubDir
 		if actualSubDir:
@@ -370,8 +376,9 @@ class SourceFetcherForLocalFile(object):
 		# just symlink the local file to fetchTarget (if it exists)
 		portBaseDir = os.path.dirname(os.path.dirname(self.fetchTarget))
 		localFile = self.uri
-		if localFile.endswith('#noarchive'):
-			localFile = localFile[:-10]
+		for option in ('#noarchive', '#justmove'):
+			if localFile.endswith(option):
+				localFile = localFile[:-len(option)]
 		if not localFile.startswith('/'):
 			localFile = os.path.join(portBaseDir, localFile)
 		if not (os.path.isfile(localFile) or os.path.isdir(localFile)):
